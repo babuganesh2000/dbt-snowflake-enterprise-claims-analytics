@@ -1,0 +1,53 @@
+name: dbt_ci
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  dbt-ci:
+    runs-on: ubuntu-latest
+    env:
+      DBT_PROFILES_DIR: .
+      DBT_TARGET: ci
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+      SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+      SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+      SNOWFLAKE_SCHEMA: DBT_CI
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: dbt deps
+        run: dbt deps
+
+      - name: SQLFluff lint
+        run: sqlfluff lint models --dialect snowflake
+
+      - name: dbt parse
+        run: dbt parse --target ci
+
+      - name: unit tests
+        run: dbt test --select test_type:unit --target ci
+
+      - name: dbt build modified nodes
+        run: |
+          if [ -f artifacts/prod/manifest.json ]; then
+            dbt build --select state:modified+ --state artifacts/prod --defer --target ci
+          else
+            dbt build --target ci
+          fi

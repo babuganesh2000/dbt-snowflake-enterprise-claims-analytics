@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: raw
+    database: CLAIMS_ANALYTICS
+    schema: RAW
+    tables:
+      - name: claims_raw
+      - name: remittances_raw
+      - name: accounts_raw
+      - name: collectors_raw
+      - name: payers_raw
+      - name: facilities_raw
+      - name: workqueue_actions_raw
