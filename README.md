@@ -40,3 +40,4 @@ CSV files
 5. Run dbt
 
 See `docs/STEP_BY_STEP.md` for exact instructions.
+# dbt-snowflake-enterprise-claims-analytics
