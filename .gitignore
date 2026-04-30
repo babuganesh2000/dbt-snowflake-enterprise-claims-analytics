@@ -7,3 +7,4 @@ __pycache__/
 .env
 profiles.yml
 data/
+dbt_internal_packages/
